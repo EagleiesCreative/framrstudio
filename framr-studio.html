@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Framr Studio — Photobooth Software for Modern Businesses</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white: #FFFFFF;
+    --off: #F8F8FA;
+    --off2: #F2F2F6;
+    --ink: #0D0D12;
+    --ink-mid: #3D3D4A;
+    --ink-soft: #8888A0;
+    --accent: #5B5FEE;
+    --accent-light: #EEEFFE;
+    --accent2: #FF5C87;
+    --border: rgba(13,13,18,0.07);
+    --border-strong: rgba(13,13,18,0.12);
+    --radius: 20px;
+    --shadow-sm: 0 2px 12px rgba(13,13,18,0.06);
+    --shadow-md: 0 8px 32px rgba(13,13,18,0.08);
+    --shadow-lg: 0 20px 64px rgba(13,13,18,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 64px; height: 68px;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(16px);
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family:'Syne',sans-serif; font-size:20px; font-weight:800; color:var(--ink); letter-spacing:-.5px; text-decoration:none; }
+  .logo-dot { color:var(--accent); }
+  .nav-links { display:flex; gap:32px; list-style:none; }
+  .nav-links a { text-decoration:none; color:var(--ink-soft); font-size:14px; font-weight:500; transition:color .2s; }
+  .nav-links a:hover { color:var(--ink); }
+  .nav-actions { display:flex; gap:10px; align-items:center; }
+  .pill { padding:8px 20px; border-radius:100px; font-size:14px; font-weight:500; cursor:pointer; text-decoration:none; transition:all .2s; letter-spacing:.01em; display:inline-block; }
+  .pill-ghost { background:transparent; border:1px solid var(--border-strong); color:var(--ink-mid); }
+  .pill-ghost:hover { background:var(--off); color:var(--ink); }
+  .pill-solid { background:var(--ink); border:1px solid var(--ink); color:var(--white); }
+  .pill-solid:hover { background:#1a1a2e; transform:translateY(-1px); box-shadow:0 4px 16px rgba(13,13,18,0.2); }
+  .pill-accent { background:var(--accent); border:1px solid var(--accent); color:var(--white); font-weight:600; }
+  .pill-accent:hover { background:#4a4edc; transform:translateY(-1px); box-shadow:0 4px 20px rgba(91,95,238,.35); }
+  .pill-lg { padding:13px 28px; font-size:15px; font-weight:600; }
+
+  /* HERO */
+  .hero { padding:96px 64px 80px; text-align:center; position:relative; overflow:hidden; }
+  .hero::before {
+    content:''; position:absolute; inset:0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 100%);
+    -webkit-mask-image:radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 100%);
+  }
+  .hero-inner { position:relative; z-index:1; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--accent-light); border:1px solid rgba(91,95,238,.18);
+    border-radius:100px; padding:5px 14px 5px 6px;
+    font-size:13px; font-weight:500; color:var(--accent); margin-bottom:36px;
+  }
+  .hero-pill-badge { background:var(--accent); color:var(--white); font-size:11px; font-weight:700; padding:3px 8px; border-radius:100px; letter-spacing:.04em; }
+  .hero h1 { font-family:'Syne',sans-serif; font-size:clamp(44px,6.5vw,82px); font-weight:800; line-height:1.05; letter-spacing:-3px; color:var(--ink); max-width:880px; margin:0 auto 24px; }
+  .accent-word { background:linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .hero-sub { font-size:18px; color:var(--ink-soft); max-width:500px; margin:0 auto 44px; font-weight:400; line-height:1.65; }
+  .hero-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .hero-micro { font-size:13px; color:var(--ink-soft); display:flex; gap:20px; justify-content:center; align-items:center; flex-wrap:wrap; }
+  .hero-micro span { display:flex; align-items:center; gap:6px; }
+  .tick { width:16px; height:16px; background:#EAFAF1; border-radius:50%; color:#27AE60; font-size:9px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+
+  .hero-mockup { margin:64px auto 0; max-width:960px; background:var(--white); border:1px solid var(--border-strong); border-radius:24px; box-shadow:var(--shadow-lg),0 0 0 1px rgba(91,95,238,.06); overflow:hidden; }
+  .mockup-topbar { background:var(--off); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; gap:12px; }
+  .win-dots { display:flex; gap:6px; }
+  .wd { width:10px; height:10px; border-radius:50%; }
+  .wd1{background:#FF5F57;} .wd2{background:#FEBC2E;} .wd3{background:#28C840;}
+  .mockup-url { flex:1; background:var(--white); border:1px solid var(--border); border-radius:8px; padding:5px 14px; font-size:12px; color:var(--ink-soft); text-align:center; max-width:280px; margin:0 auto; }
+  .mockup-body { display:grid; grid-template-columns:220px 1fr; min-height:380px; }
+  .mock-sidebar { background:var(--off); border-right:1px solid var(--border); padding:24px 16px; }
+  .mock-logo { font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:var(--ink); margin-bottom:28px; padding:0 8px; }
+  .mock-nav-section { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); padding:0 8px; margin-bottom:8px; }
+  .mock-nav-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:10px; font-size:13px; font-weight:500; color:var(--ink-soft); margin-bottom:2px; }
+  .mock-nav-item.active { background:var(--white); color:var(--ink); box-shadow:var(--shadow-sm); }
+  .ni-icon { width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; background:var(--off2); }
+  .mock-nav-item.active .ni-icon { background:var(--accent-light); }
+  .mock-main { padding:28px; display:flex; flex-direction:column; gap:20px; }
+  .mock-header-row { display:flex; align-items:center; justify-content:space-between; }
+  .mock-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--ink); }
+  .mock-badge { background:#EAF9F1; color:#1A8A4A; font-size:11px; font-weight:600; padding:4px 10px; border-radius:100px; display:flex; align-items:center; gap:5px; }
+  .mock-badge::before { content:'●'; font-size:8px; }
+  .mock-photo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .mock-photo { aspect-ratio:3/4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .mp-a{background:linear-gradient(145deg,#E8EDFF,#C7D0FF);} .mp-b{background:linear-gradient(145deg,#FFE8F0,#FFBED4);} .mp-c{background:linear-gradient(145deg,#E8FFF4,#B8F5D8);} .mp-d{background:linear-gradient(145deg,#FFF8E8,#FFE9B8);}
+  .mock-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .mock-stat { background:var(--off); border-radius:12px; padding:14px 16px; border:1px solid var(--border); }
+  .mock-stat-n { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; color:var(--ink); letter-spacing:-1px; }
+  .mock-stat-l { font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  /* LOGOS */
+  .logos-strip { border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:32px 64px; display:flex; align-items:center; }
+  .logos-label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); white-space:nowrap; margin-right:40px; flex-shrink:0; }
+  .logos-track { display:flex; gap:48px; align-items:center; flex-wrap:wrap; }
+  .logos-track span { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--ink); opacity:.2; letter-spacing:-.3px; }
+
+  /* SECTION */
+  .section { padding:96px 64px; }
+  .section-label { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); margin-bottom:18px; }
+  .section-label::before { content:''; width:20px; height:2px; background:var(--accent); border-radius:2px; }
+  h2 { font-family:'Syne',sans-serif; font-size:clamp(30px,4vw,48px); font-weight:800; line-height:1.1; letter-spacing:-1.5px; color:var(--ink); }
+  .section-desc { font-size:17px; color:var(--ink-soft); line-height:1.65; max-width:440px; margin-top:14px; font-weight:400; }
+
+  /* FEATURES */
+  .feat-layout { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:56px; }
+  .feat-big { grid-row:span 2; background:var(--off); border:1px solid var(--border); border-radius:var(--radius); padding:40px 36px; display:flex; flex-direction:column; transition:box-shadow .25s; }
+  .feat-big:hover { box-shadow:var(--shadow-md); }
+  .feat-small { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:32px; transition:box-shadow .25s,transform .25s; }
+  .feat-small:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .feat-small.dark { background:var(--ink); border-color:var(--ink); }
+  .feat-icon-wrap { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:22px; margin-bottom:24px; }
+  .fi-blue{background:var(--accent-light);} .fi-pink{background:#FFE8F0;} .fi-green{background:#E8FFF4;} .fi-yellow{background:#FFFAE8;} .fi-dark{background:rgba(255,255,255,.08);}
+  .feat-name { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; color:var(--ink); margin-bottom:10px; letter-spacing:-.3px; }
+  .feat-small.dark .feat-name { color:var(--white); }
+  .feat-text { font-size:14px; color:var(--ink-soft); line-height:1.7; }
+  .feat-small.dark .feat-text { color:rgba(255,255,255,.5); }
+  .feat-visual { flex:1; margin-top:32px; background:var(--white); border-radius:14px; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; min-height:180px; padding:20px; }
+  .template-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; }
+  .tg-item { border-radius:10px; aspect-ratio:3/4; border:2px solid transparent; display:flex; align-items:center; justify-content:center; font-size:18px; transition:border-color .2s; }
+  .tg-item:hover { border-color:var(--accent); }
+  .tg1{background:linear-gradient(135deg,#E8EDFF,#C7D0FF);} .tg2{background:linear-gradient(135deg,#FFE8F0,#FFBED4);} .tg3{background:linear-gradient(135deg,#FFF8E8,#FFE4A0);} .tg4{background:linear-gradient(135deg,#E8FFF4,#B8F5D8);}
+  .tg-selected { border-color:var(--accent) !important; position:relative; }
+  .tg-selected::after { content:'✓'; position:absolute; top:6px; right:6px; width:18px; height:18px; background:var(--accent); color:var(--white); border-radius:50%; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+
+  /* STATS */
+  .stats-band { background:var(--ink); margin:0 64px; border-radius:24px; padding:72px 80px; display:grid; grid-template-columns:1fr auto; gap:60px; align-items:center; }
+  .stats-band h2 { color:var(--white); max-width:400px; }
+  .stats-band p { color:rgba(255,255,255,.45); margin-top:14px; font-size:16px; }
+  .stats-numbers { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .stat-pill { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:28px 24px; min-width:150px; }
+  .stat-pill-num { font-family:'Syne',sans-serif; font-size:44px; font-weight:800; color:var(--white); letter-spacing:-2px; line-height:1; }
+  .stat-pill-num em { color:var(--accent); font-style:normal; }
+  .stat-pill-label { font-size:13px; color:rgba(255,255,255,.4); margin-top:8px; }
+
+  /* HOW IT WORKS */
+  .split { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
+  .steps-list { margin-top:40px; display:flex; flex-direction:column; }
+  .step-row { display:flex; gap:20px; padding:22px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:all .2s; }
+  .step-row:last-child { border-bottom:none; }
+  .step-num { width:32px; height:32px; border-radius:50%; border:1.5px solid var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--ink-soft); flex-shrink:0; margin-top:3px; transition:all .2s; }
+  .step-row.active .step-num { background:var(--accent); border-color:var(--accent); color:var(--white); }
+  .step-content-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; transition:color .2s; }
+  .step-row.active .step-content-title { color:var(--ink); }
+  .step-content-desc { font-size:14px; color:var(--ink-soft); line-height:1.65; }
+  .split-visual { background:var(--off); border:1px solid var(--border); border-radius:24px; padding:36px; box-shadow:var(--shadow-md); }
+  .booth-card { background:var(--white); border-radius:16px; border:1px solid var(--border); overflow:hidden; box-shadow:var(--shadow-sm); }
+  .booth-card-header { background:var(--off); padding:12px 16px; font-size:12px; font-weight:600; color:var(--ink-soft); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .booth-live-dot { width:7px; height:7px; background:#27AE60; border-radius:50%; display:inline-block; margin-right:6px; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.3);} }
+  .booth-frame-preview { padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .bfp-slot { aspect-ratio:3/4; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .bfp1{background:linear-gradient(145deg,#E8EDFF,#C7D0FF);} .bfp2{background:linear-gradient(145deg,#FFE8F0,#FFBED4);} .bfp3{background:linear-gradient(145deg,#E8FFF4,#B8F5D8);} .bfp4{background:linear-gradient(145deg,#FFF8E8,#FFE4A0);}
+  .booth-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; font-size:12px; }
+  .booth-footer-label { color:var(--ink-soft); font-weight:500; }
+  .booth-share-btn { background:var(--accent); color:var(--white); padding:6px 14px; border-radius:100px; font-size:12px; font-weight:600; border:none; cursor:pointer; }
+
+  /* PRICING */
+  .pricing-head { text-align:center; margin-bottom:64px; }
+  .pricing-head p { font-size:17px; color:var(--ink-soft); margin:14px auto 0; max-width:420px; }
+  .pricing-toggle { display:inline-flex; background:var(--off); border:1px solid var(--border); border-radius:100px; padding:4px; margin:28px auto 0; }
+  .pt-btn { padding:8px 20px; border-radius:100px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; transition:all .2s; border:none; background:none; }
+  .pt-btn.active { background:var(--white); color:var(--ink); box-shadow:var(--shadow-sm); }
+  .pt-save { background:#EAF9F1; color:#1A8A4A; font-size:11px; font-weight:700; padding:2px 8px; border-radius:100px; margin-left:6px; }
+  .plans { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:1040px; margin:0 auto; }
+  .plan { background:var(--white); border:1.5px solid var(--border); border-radius:24px; padding:36px; position:relative; transition:box-shadow .25s,transform .25s; }
+  .plan:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+  .plan.popular { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .plan.popular:hover { box-shadow:0 0 0 1px var(--accent),var(--shadow-md); }
+  .plan-top-badge { position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:var(--accent); color:var(--white); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:4px 16px; border-radius:100px; white-space:nowrap; }
+  .plan-tier { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-soft); margin-bottom:6px; }
+  .plan.popular .plan-tier { color:var(--accent); }
+  .plan-price-row { display:flex; align-items:flex-end; gap:4px; margin-bottom:4px; }
+  .plan-currency { font-size:20px; font-weight:600; color:var(--ink); margin-bottom:8px; }
+  .plan-amount { font-family:'Syne',sans-serif; font-size:54px; font-weight:800; color:var(--ink); letter-spacing:-2px; line-height:1; }
+  .plan-cycle { font-size:13px; color:var(--ink-soft); margin-bottom:28px; }
+  .plan-desc { font-size:14px; color:var(--ink-soft); line-height:1.6; margin-bottom:28px; }
+  hr.plan-hr { border:none; border-top:1px solid var(--border); margin:0 0 24px; }
+  .plan-features { list-style:none; display:flex; flex-direction:column; gap:12px; margin-bottom:32px; }
+  .plan-features li { display:flex; align-items:flex-start; gap:10px; font-size:14px; color:var(--ink-mid); }
+  .plan-check { width:18px; height:18px; border-radius:50%; background:var(--accent-light); color:var(--accent); font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .plan.popular .plan-check { background:var(--accent); color:var(--white); }
+  .plan-btn { display:block; width:100%; padding:13px; border-radius:100px; font-size:14px; font-weight:600; text-align:center; cursor:pointer; text-decoration:none; transition:all .2s; background:var(--off); border:1.5px solid var(--border); color:var(--ink); }
+  .plan-btn:hover { background:var(--off2); border-color:var(--border-strong); }
+  .plan.popular .plan-btn { background:var(--accent); border-color:var(--accent); color:var(--white); }
+  .plan.popular .plan-btn:hover { background:#4a4edc; box-shadow:0 4px 16px rgba(91,95,238,.35); }
+
+  /* TESTIMONIALS */
+  .testi-head { text-align:center; margin-bottom:56px; }
+  .testi-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; max-width:1040px; margin:0 auto; }
+  .tc { background:var(--off); border:1px solid var(--border); border-radius:20px; padding:32px; transition:box-shadow .25s; }
+  .tc:hover { box-shadow:var(--shadow-sm); }
+  .tc-stars { color:#F59E0B; font-size:13px; letter-spacing:2px; margin-bottom:16px; }
+  .tc-quote { font-size:15px; line-height:1.7; color:var(--ink); margin-bottom:24px; }
+  .tc-author { display:flex; align-items:center; gap:12px; }
+  .tc-av { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:14px; font-weight:800; color:var(--white); flex-shrink:0; }
+  .av-a{background:linear-gradient(135deg,var(--accent),#8B8FFF);} .av-b{background:linear-gradient(135deg,var(--accent2),#FF9AB8);} .av-c{background:linear-gradient(135deg,#27AE60,#6FCF97);}
+  .tc-name { font-size:14px; font-weight:600; color:var(--ink); }
+  .tc-role { font-size:12px; color:var(--ink-soft); }
+
+  /* FAQ */
+  .faq-section { background:var(--off); }
+  .faq-inner { max-width:680px; margin:0 auto; }
+  .faq-list { margin-top:48px; }
+  .faq-row { border-bottom:1px solid var(--border); padding:20px 0; }
+  .faq-q { display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:16px; }
+  .faq-q-text { font-size:16px; font-weight:500; color:var(--ink); }
+  .faq-icon { width:28px; height:28px; border-radius:50%; background:var(--white); border:1.5px solid var(--border-strong); display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--ink-soft); flex-shrink:0; transition:all .2s; }
+  .faq-row.open .faq-icon { background:var(--accent); border-color:var(--accent); color:var(--white); transform:rotate(45deg); }
+  .faq-a { font-size:14px; color:var(--ink-soft); line-height:1.7; max-height:0; overflow:hidden; transition:max-height .35s ease,padding .3s; }
+  .faq-row.open .faq-a { max-height:200px; padding-top:14px; }
+
+  /* CTA */
+  .cta-section { padding:0 64px 100px; }
+  .cta-block { background:var(--off); border:1px solid var(--border); border-radius:28px; padding:96px 80px; text-align:center; position:relative; overflow:hidden; }
+  .cta-block::before { content:''; position:absolute; top:-80px; left:-80px; width:280px; height:280px; background:radial-gradient(circle,rgba(91,95,238,.12) 0%,transparent 70%); border-radius:50%; }
+  .cta-block::after { content:''; position:absolute; bottom:-80px; right:-80px; width:280px; height:280px; background:radial-gradient(circle,rgba(255,92,135,.1) 0%,transparent 70%); border-radius:50%; }
+  .cta-block h2 { font-size:clamp(30px,4vw,52px); max-width:580px; margin:0 auto 16px; position:relative; z-index:1; }
+  .cta-block p { font-size:17px; color:var(--ink-soft); margin-bottom:40px; position:relative; z-index:1; }
+  .cta-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; z-index:1; }
+
+  /* FOOTER */
+  footer { border-top:1px solid var(--border); padding:60px 64px 40px; }
+  .footer-top { display:grid; grid-template-columns:1.8fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
+  .footer-brand-logo { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; color:var(--ink); letter-spacing:-.5px; display:block; margin-bottom:12px; text-decoration:none; }
+  .footer-desc { font-size:14px; color:var(--ink-soft); line-height:1.65; max-width:260px; }
+  .footer-col h4 { font-size:13px; font-weight:600; color:var(--ink); margin-bottom:16px; letter-spacing:.02em; }
+  .footer-col ul { list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .footer-col a { font-size:14px; color:var(--ink-soft); text-decoration:none; transition:color .2s; }
+  .footer-col a:hover { color:var(--ink); }
+  .footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:28px; border-top:1px solid var(--border); font-size:13px; color:var(--ink-soft); }
+  .footer-bottom-links { display:flex; gap:20px; }
+  .footer-bottom-links a { color:var(--ink-soft); text-decoration:none; font-size:13px; transition:color .2s; }
+  .footer-bottom-links a:hover { color:var(--ink); }
+
+  /* Animations */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(28px);} to{opacity:1;transform:translateY(0);} }
+  .hero-pill    { opacity:0; animation:fadeUp .5s .05s forwards; }
+  .hero h1      { opacity:0; animation:fadeUp .6s .15s forwards; }
+  .hero-sub     { opacity:0; animation:fadeUp .6s .25s forwards; }
+  .hero-actions { opacity:0; animation:fadeUp .6s .35s forwards; }
+  .hero-micro   { opacity:0; animation:fadeUp .6s .42s forwards; }
+  .hero-mockup  { opacity:0; animation:fadeUp .7s .52s forwards; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">framr<span class="logo-dot">.</span>studio</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="#" class="pill pill-ghost">Log in</a>
+    <a href="#pricing" class="pill pill-solid">Get started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-pill">
+      <span class="hero-pill-badge">New</span>
+      AI background removal &amp; live filters now available
+    </div>
+    <h1>Photobooth software<br>built to <span class="accent-word">scale</span> your business</h1>
+    <p class="hero-sub">The all-in-one platform for startups and studios launching, growing, and automating photobooth services.</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="pill pill-accent pill-lg">Start free trial →</a>
+      <a href="#how" class="pill pill-ghost pill-lg">See a demo</a>
+    </div>
+    <div class="hero-micro">
+      <span><span class="tick">✓</span> No credit card required</span>
+      <span><span class="tick">✓</span> 14-day free trial</span>
+      <span><span class="tick">✓</span> Cancel anytime</span>
+    </div>
+  </div>
+  <div class="hero-mockup">
+    <div class="mockup-topbar">
+      <div class="win-dots"><div class="wd wd1"></div><div class="wd wd2"></div><div class="wd wd3"></div></div>
+      <div class="mockup-url">app.framrstudio.com/dashboard</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mock-sidebar">
+        <div class="mock-logo">framr<span style="color:var(--accent)">.</span>studio</div>
+        <div class="mock-nav-section">Workspace</div>
+        <div class="mock-nav-item active"><span class="ni-icon">📸</span> Gallery</div>
+        <div class="mock-nav-item"><span class="ni-icon">🎨</span> Templates</div>
+        <div class="mock-nav-item"><span class="ni-icon">📊</span> Analytics</div>
+        <div class="mock-nav-item"><span class="ni-icon">🔗</span> Share</div>
+        <div class="mock-nav-item"><span class="ni-icon">⚙️</span> Settings</div>
+        <div style="margin-top:24px;background:var(--accent-light);border-radius:12px;padding:14px 12px;">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);letter-spacing:.04em;margin-bottom:4px;">LIVE SESSION</div>
+          <div style="font-size:20px;font-family:'Syne',sans-serif;font-weight:800;color:var(--ink);">32</div>
+          <div style="font-size:11px;color:var(--ink-soft);">photos captured</div>
+        </div>
+      </div>
+      <div class="mock-main">
+        <div class="mock-header-row">
+          <div class="mock-title">Session Gallery</div>
+          <div class="mock-badge">Session live</div>
+        </div>
+        <div class="mock-photo-grid">
+          <div class="mock-photo mp-a">🧑‍🤝‍🧑</div>
+          <div class="mock-photo mp-b">🎉</div>
+          <div class="mock-photo mp-c">💑</div>
+          <div class="mock-photo mp-d">🥳</div>
+        </div>
+        <div class="mock-stats">
+          <div class="mock-stat"><div class="mock-stat-n">32</div><div class="mock-stat-l">Photos taken</div></div>
+          <div class="mock-stat"><div class="mock-stat-n">18</div><div class="mock-stat-l">QR shares</div></div>
+          <div class="mock-stat"><div class="mock-stat-n">4</div><div class="mock-stat-l">Templates used</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos-strip">
+  <span class="logos-label">Trusted by</span>
+  <div class="logos-track">
+    <span>Lumière Events</span><span>SnapCo Studios</span><span>Bloom Agency</span><span>Flashwave</span><span>Noir Collective</span><span>Studio Eight</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div style="text-align:center;margin-bottom:56px;">
+    <div class="section-label" style="justify-content:center;">Features</div>
+    <h2>Everything a modern photobooth<br>startup needs</h2>
+    <p class="section-desc" style="margin:14px auto 0;text-align:center;max-width:480px;">Tools built for speed, scale, and a seamless experience — from your first event to your hundredth.</p>
+  </div>
+  <div class="feat-layout">
+    <div class="feat-big">
+      <div class="feat-icon-wrap fi-blue">🎨</div>
+      <div class="feat-name">Custom Template Builder</div>
+      <p class="feat-text">Drag-and-drop layouts, brand overlays, and custom frames. Design a photo experience that looks completely on-brand for every client.</p>
+      <div class="feat-visual">
+        <div class="template-grid">
+          <div class="tg-item tg1 tg-selected">🧑‍🤝‍🧑</div>
+          <div class="tg-item tg2">🎉</div>
+          <div class="tg-item tg3">💑</div>
+          <div class="tg-item tg4">🥳</div>
+        </div>
+      </div>
+    </div>
+    <div class="feat-small">
+      <div class="feat-icon-wrap fi-pink">✨</div>
+      <div class="feat-name">AI Enhancements</div>
+      <p class="feat-text">Background removal, skin smoothing, and live filters — all processed on-device, instantly.</p>
+    </div>
+    <div class="feat-small dark">
+      <div class="feat-icon-wrap fi-dark">📲</div>
+      <div class="feat-name">Instant Sharing</div>
+      <p class="feat-text">QR codes, SMS, and email delivery in seconds. Guests leave with their photos — your brand in their pocket.</p>
+    </div>
+    <div class="feat-small">
+      <div class="feat-icon-wrap fi-green">📊</div>
+      <div class="feat-name">Analytics Dashboard</div>
+      <p class="feat-text">Track shares, prints, and engagement across every event to optimize and grow your business.</p>
+    </div>
+    <div class="feat-small">
+      <div class="feat-icon-wrap fi-yellow">🎥</div>
+      <div class="feat-name">Boomerang &amp; GIF Mode</div>
+      <p class="feat-text">Give guests something shareable beyond stills. Looping videos and animated GIFs built right in.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-band">
+  <div>
+    <div class="section-label" style="color:rgba(255,255,255,.35);">Results</div>
+    <h2 style="color:var(--white);">Numbers that<br>prove the point</h2>
+    <p>Join thousands of studios running events on Framr Studio every day.</p>
+  </div>
+  <div class="stats-numbers">
+    <div class="stat-pill"><div class="stat-pill-num">12<em>k</em></div><div class="stat-pill-label">Active studios worldwide</div></div>
+    <div class="stat-pill"><div class="stat-pill-num">98<em>%</em></div><div class="stat-pill-label">Uptime SLA guarantee</div></div>
+    <div class="stat-pill"><div class="stat-pill-num">3<em>×</em></div><div class="stat-pill-label">Faster event setup</div></div>
+    <div class="stat-pill"><div class="stat-pill-num">4.9<em>★</em></div><div class="stat-pill-label">Average studio rating</div></div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="split">
+    <div>
+      <div class="section-label">How it works</div>
+      <h2>Up and running in<br>minutes, not days</h2>
+      <div class="steps-list">
+        <div class="step-row active">
+          <div class="step-num">1</div>
+          <div><div class="step-content-title">Create your event</div><div class="step-content-desc">Name your event, pick your layout, and choose a template. Takes under two minutes.</div></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">2</div>
+          <div><div class="step-content-title">Customize your branding</div><div class="step-content-desc">Add your logo, colors, and overlays. Real-time preview shows exactly what guests will see.</div></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">3</div>
+          <div><div class="step-content-title">Go live &amp; capture</div><div class="step-content-desc">Connect your camera or use your tablet's built-in. Framr handles capture and processing automatically.</div></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num">4</div>
+          <div><div class="step-content-title">Share &amp; review results</div><div class="step-content-desc">Guests share instantly via QR. You get a full analytics report after every session.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="split-visual">
+      <div class="booth-card">
+        <div class="booth-card-header">
+          <span><span class="booth-live-dot"></span>Live Preview</span>
+          <span style="color:var(--accent);font-weight:600;">2×2 Grid</span>
+        </div>
+        <div class="booth-frame-preview">
+          <div class="bfp-slot bfp1">😄</div>
+          <div class="bfp-slot bfp2">🎊</div>
+          <div class="bfp-slot bfp3">💃</div>
+          <div class="bfp-slot bfp4">🥂</div>
+        </div>
+        <div class="booth-footer">
+          <span class="booth-footer-label">Session: <strong style="color:var(--ink)">Wedding Co.</strong></span>
+          <button class="booth-share-btn">Share via QR</button>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:16px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--ink);">14s</div>
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">Avg. setup time</div>
+        </div>
+        <div style="background:var(--accent-light);border:1px solid rgba(91,95,238,.15);border-radius:14px;padding:16px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);">∞</div>
+          <div style="font-size:12px;color:var(--accent);opacity:.7;margin-top:2px;">Events per month</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="pricing-head">
+    <div class="section-label" style="justify-content:center;">Pricing</div>
+    <h2>Simple, startup-friendly pricing</h2>
+    <p>Start free. Scale as you grow. No surprise fees.</p>
+    <div style="display:flex;justify-content:center;">
+      <div class="pricing-toggle">
+        <button class="pt-btn">Monthly</button>
+        <button class="pt-btn active">Annual <span class="pt-save">Save 20%</span></button>
+      </div>
+    </div>
+  </div>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-tier">Growth</div>
+      <div class="plan-price-row"><span class="plan-currency">$</span><span class="plan-amount">29</span></div>
+      <div class="plan-cycle">per month, billed annually</div>
+      <p class="plan-desc">Perfect for solo operators just getting started with their first booths.</p>
+      <hr class="plan-hr">
+      <ul class="plan-features">
+        <li><span class="plan-check">✓</span> Up to 3 events/month</li>
+        <li><span class="plan-check">✓</span> 500 photos per event</li>
+        <li><span class="plan-check">✓</span> 10 template designs</li>
+        <li><span class="plan-check">✓</span> QR + email sharing</li>
+        <li><span class="plan-check">✓</span> Basic analytics</li>
+        <li><span class="plan-check">✓</span> 1 user seat</li>
+      </ul>
+      <a href="#" class="plan-btn">Start free trial</a>
+    </div>
+    <div class="plan popular">
+      <div class="plan-top-badge">Most Popular</div>
+      <div class="plan-tier">Professional</div>
+      <div class="plan-price-row"><span class="plan-currency">$</span><span class="plan-amount">79</span></div>
+      <div class="plan-cycle">per month, billed annually</div>
+      <p class="plan-desc">For growing studios running multiple events and needing premium tools.</p>
+      <hr class="plan-hr">
+      <ul class="plan-features">
+        <li><span class="plan-check">✓</span> Unlimited events</li>
+        <li><span class="plan-check">✓</span> Unlimited photos</li>
+        <li><span class="plan-check">✓</span> 100+ premium templates</li>
+        <li><span class="plan-check">✓</span> SMS, QR &amp; email sharing</li>
+        <li><span class="plan-check">✓</span> AI background removal</li>
+        <li><span class="plan-check">✓</span> Boomerang &amp; GIF mode</li>
+        <li><span class="plan-check">✓</span> Full analytics suite</li>
+        <li><span class="plan-check">✓</span> 5 user seats</li>
+      </ul>
+      <a href="#" class="plan-btn">Start free trial</a>
+    </div>
+    <div class="plan">
+      <div class="plan-tier">Panoramic+</div>
+      <div class="plan-price-row"><span class="plan-currency">$</span><span class="plan-amount">149</span></div>
+      <div class="plan-cycle">per month, billed annually</div>
+      <p class="plan-desc">For agencies and enterprises needing 360° capabilities and white-label control.</p>
+      <hr class="plan-hr">
+      <ul class="plan-features">
+        <li><span class="plan-check">✓</span> Everything in Professional</li>
+        <li><span class="plan-check">✓</span> 360° panoramic booth mode</li>
+        <li><span class="plan-check">✓</span> Multi-camera sync</li>
+        <li><span class="plan-check">✓</span> Full white-label branding</li>
+        <li><span class="plan-check">✓</span> Priority support &amp; SLA</li>
+        <li><span class="plan-check">✓</span> API access &amp; webhooks</li>
+        <li><span class="plan-check">✓</span> Unlimited seats</li>
+        <li><span class="plan-check">✓</span> Dedicated account manager</li>
+      </ul>
+      <a href="#" class="plan-btn">Contact sales</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section" style="padding-top:0;">
+  <div class="testi-head">
+    <div class="section-label" style="justify-content:center;">Testimonials</div>
+    <h2>Founders love Framr Studio</h2>
+  </div>
+  <div class="testi-cards">
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-quote">"We launched our photobooth startup in 3 weeks. Framr Studio handled everything — templates, sharing, analytics. It just works."</div>
+      <div class="tc-author"><div class="tc-av av-a">SA</div><div><div class="tc-name">Sofia Andreou</div><div class="tc-role">Founder, Lumière Photo Booths</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-quote">"The AI background removal alone changed how we pitch to corporate clients. It's a premium feature that closes deals."</div>
+      <div class="tc-author"><div class="tc-av av-b">ML</div><div><div class="tc-name">Marcus Leite</div><div class="tc-role">CEO, SnapCo Studios</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-quote">"We run 20+ events a month and Framr's analytics finally showed us what's driving growth. Worth every cent of the Professional plan."</div>
+      <div class="tc-author"><div class="tc-av av-c">JT</div><div><div class="tc-name">Jamie Thornton</div><div class="tc-role">Director, Bloom Agency</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq-section" id="faq">
+  <div class="faq-inner">
+    <div style="text-align:center;margin-bottom:8px;">
+      <div class="section-label" style="justify-content:center;">FAQ</div>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-row open">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span class="faq-q-text">Do I need special hardware to run Framr Studio?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Framr Studio runs on any Windows or macOS laptop or tablet. For best results we recommend a DSLR or mirrorless camera via USB, but your device's built-in webcam works great to get started.</div>
+      </div>
+      <div class="faq-row">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span class="faq-q-text">Can I remove Framr branding from photos?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Yes — white-label branding is available on the Panoramic+ plan. Remove all Framr branding and present a fully seamless experience under your own studio name.</div>
+      </div>
+      <div class="faq-row">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span class="faq-q-text">What happens when my free trial ends?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">After 14 days you'll be asked to choose a plan. All your events and photos are preserved. You can downgrade or cancel with no penalty at any time — no awkward contracts.</div>
+      </div>
+      <div class="faq-row">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span class="faq-q-text">Is 360° mode available on all plans?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">360° panoramic booth mode is exclusive to the Panoramic+ plan. It supports multi-camera sync rigs and exports both 360 video clips and still panoramas.</div>
+      </div>
+      <div class="faq-row">
+        <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">
+          <span class="faq-q-text">Can I switch plans at any time?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Absolutely. Upgrade or downgrade from your account settings any time. Upgrades are instant, downgrades apply at your next billing cycle.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <div class="cta-block">
+    <div class="section-label" style="justify-content:center;">Get started</div>
+    <h2>The smartest way to launch<br>your photobooth business</h2>
+    <p>Join 12,000+ studios. No credit card required.</p>
+    <div class="cta-actions">
+      <a href="#pricing" class="pill pill-accent pill-lg">Start free — it's on us →</a>
+      <a href="#features" class="pill pill-ghost pill-lg">Explore features</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div>
+      <a href="#" class="footer-brand-logo">framr<span style="color:var(--accent)">.</span>studio</a>
+      <p class="footer-desc">Professional photobooth software for modern startups, studios, and event businesses worldwide.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <ul><li><a href="#">Features</a></li><li><a href="#">Templates</a></li><li><a href="#">Pricing</a></li><li><a href="#">Changelog</a></li><li><a href="#">Roadmap</a></li></ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul><li><a href="#">About</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Press</a></li></ul>
+    </div>
+    <div class="footer-col">
+      <h4>Support</h4>
+      <ul><li><a href="#">Help Center</a></li><li><a href="#">Community</a></li><li><a href="#">Status</a></li><li><a href="#">Contact</a></li></ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Framr Studio. All rights reserved.</span>
+    <div class="footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Cookie Settings</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.pt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pt-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.step-row').forEach(row => {
+    row.addEventListener('mouseenter', () => {
+      document.querySelectorAll('.step-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

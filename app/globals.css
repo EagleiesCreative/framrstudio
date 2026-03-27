@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+@theme {
+  --font-syne: var(--font-syne), "Syne", sans-serif;
+  --font-outfit: var(--font-outfit), "Outfit", sans-serif;
+
+  --color-white: #FFFFFF;
+  --color-off: #F8F8FA;
+  --color-off2: #F2F2F6;
+  --color-ink: #0D0D12;
+  --color-ink-mid: #3D3D4A;
+  --color-ink-soft: #8888A0;
+  --color-accent: #5B5FEE;
+  --color-accent-light: #EEEFFE;
+  --color-accent2: #FF5C87;
+  --color-border: rgba(13, 13, 18, 0.07);
+  --color-border-strong: rgba(13, 13, 18, 0.12);
+  --color-success: #10B981;
+  --color-error: #EF4444;
+
+  --radius-xl: 20px;
+  --shadow-sm: 0 2px 12px rgba(13, 13, 18, 0.06);
+  --shadow-md: 0 8px 32px rgba(13, 13, 18, 0.08);
+  --shadow-lg: 0 20px 64px rgba(13, 13, 18, 0.1);
+}
+
+:root {
+  --white: #FFFFFF;
+  --off: #F8F8FA;
+  --off2: #F2F2F6;
+  --ink: #0D0D12;
+  --ink-mid: #3D3D4A;
+  --ink-soft: #8888A0;
+  --accent: #5B5FEE;
+  --accent-light: #EEEFFE;
+  --accent2: #FF5C87;
+  --border: rgba(13, 13, 18, 0.07);
+  --border-strong: rgba(13, 13, 18, 0.12);
+  --success: #10B981;
+  --error: #EF4444;
+  --radius: 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-outfit), sans-serif;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Utilities if needed */
+.animate-glow-pulse {
+  animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(91, 95, 238, 0); }
+  50% { box-shadow: 0 0 20px rgba(91, 95, 238, 0.3); }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  html, body {
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 16mm 16mm 16mm 16mm;
+  }
+
+  /* Hide the interactive web UI during printing */
+  .invoice-web-root {
+    display: none !important;
+  }
+
+  /* Show the print-only layout */
+  .invoice-print-root {
+    display: block !important;
+  }
+
+  /* Prevent awkward breaks in table rows */
+  table { border-collapse: collapse; width: 100%; }
+  tr, td, th { page-break-inside: avoid; }
+}
