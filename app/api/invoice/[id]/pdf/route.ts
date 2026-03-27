@@ -23,7 +23,7 @@ export async function GET(
 
     const pdfBuffer = await generateInvoicePdf(invoice);
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBuffer as any, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

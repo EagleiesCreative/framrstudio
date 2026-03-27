@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase-server';
 import { generateInvoicePdf } from '@/lib/invoice-pdf';
 import { clerkClient } from '@clerk/nextjs/server';
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
 /**
  * Xendit sends subscription payment events here.
