@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase-server';
@@ -21,14 +21,13 @@ export async function GET(
       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
     }
 
-    const pdfBuffer = await generateInvoicePdf(invoice);
+    const pdfArrayBuffer = await generateInvoicePdf(invoice);
 
-    return new NextResponse(pdfBuffer as any, {
+    return new NextResponse(pdfArrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="invoice-${invoice.reference_id}.pdf"`,
-        'Content-Length': String(pdfBuffer.length),
       },
     });
   } catch (err: any) {

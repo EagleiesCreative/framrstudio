@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
@@ -10,13 +10,9 @@ const resend = new Resend(process.env.RESEND_API_KEY || 're_123');
 
 /**
  * Xendit sends subscription payment events here.
- * Supported events:
- *   - subscription.cycle.succeeded  → mark PAID, store PDF, email user
- *   - subscription.cycle.failed     → mark FAILED
  */
 export async function POST(req: NextRequest) {
   try {
-    // 1. Verify Xendit webhook token
     const xenditToken = req.headers.get('x-callback-token');
     if (xenditToken !== process.env.XENDIT_WEBHOOK_TOKEN) {
       console.warn('/api/webhooks/xendit: Invalid callback token');
@@ -26,13 +22,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { event, data } = body;
 
-    console.log(`/api/webhooks/xendit event=${event}`, JSON.stringify(body).slice(0, 400));
+    console.log(`/api/webhooks/xendit event=${event}`);
 
-    // 2. Find matching invoice by xendit_subscription_id
     const xenditSubscriptionId = data?.subscription_id ?? data?.id;
 
     if (!xenditSubscriptionId) {
-      console.warn('/api/webhooks/xendit: No subscription_id in payload');
       return NextResponse.json({ received: true });
     }
 
@@ -47,7 +41,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // 3. Handle each event type
     if (event === 'subscription.cycle.succeeded' || event === 'payment.succeeded') {
       await handlePaymentSucceeded(invoice);
     } else if (event === 'subscription.cycle.failed' || event === 'payment.failed') {
@@ -60,7 +53,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (err: any) {
     console.error('/api/webhooks/xendit POST error', err);
-    // Always return 200 to Xendit so it doesn't retry on our bugs
     return NextResponse.json({ received: true });
   }
 }
@@ -69,13 +61,13 @@ async function handlePaymentSucceeded(invoice: any) {
   const invoiceId: string = invoice.id;
   const orgId: string = invoice.organization_id;
 
-  // ── 3a. Update invoice status ─────────────────────────────
+  // 1. Update status to PAID
   await (supabase as any)
     .from('invoices')
     .update({ status: 'PAID' })
     .eq('id', invoiceId);
 
-  // Update org subscription
+  // 2. Update organization subscription
   await (supabase as any)
     .from('organizations')
     .update({
@@ -85,27 +77,23 @@ async function handlePaymentSucceeded(invoice: any) {
     })
     .eq('id', orgId);
 
-  // ── 3b. Generate PDF ──────────────────────────────────────
-  let pdfBuffer: Buffer | null = null;
+  let pdfArrayBuffer: ArrayBuffer | null = null;
   let pdfStorageUrl: string | null = null;
 
+  // 3. Generate and Scale PDF
   try {
-    pdfBuffer = await generateInvoicePdf({ ...invoice, status: 'PAID' });
+    pdfArrayBuffer = await generateInvoicePdf({ ...invoice, status: 'PAID' });
 
-    // ── 3c. Upload to Supabase Storage ────────────────────────
     const storagePath = `${orgId}/${invoiceId}.pdf`;
     const { error: uploadError } = await (supabase as any)
       .storage
       .from('invoices')
-      .upload(storagePath, pdfBuffer, {
+      .upload(storagePath, pdfArrayBuffer, {
         contentType: 'application/pdf',
         upsert: true,
       });
 
-    if (uploadError) {
-      console.error('/api/webhooks/xendit: Storage upload error', uploadError);
-    } else {
-      // Create a signed URL valid for 10 years (approx)
+    if (!uploadError) {
       const { data: signedData } = await (supabase as any)
         .storage
         .from('invoices')
@@ -121,20 +109,17 @@ async function handlePaymentSucceeded(invoice: any) {
       }
     }
   } catch (pdfErr) {
-    console.error('/api/webhooks/xendit: PDF generation error', pdfErr);
+    console.error('/api/webhooks/xendit: PDF processing error', pdfErr);
   }
 
-  // ── 3d. Look up billing email from Clerk ──────────────────
+  // 4. Lookup admin email from Clerk
   let billingEmail: string | null = null;
   let recipientName = invoice.organization?.name ?? 'Customer';
 
   try {
     const client = await clerkClient();
     const memberships = await client.organizations.getOrganizationMembershipList({ organizationId: orgId });
-    // Find the admin member to send to
-    const adminMember = memberships.data.find(
-      (m) => m.role === 'org:admin'
-    );
+    const adminMember = memberships.data.find((m) => m.role === 'org:admin');
     if (adminMember?.publicUserData?.userId) {
       const user = await client.users.getUser(adminMember.publicUserData.userId);
       billingEmail = user.emailAddresses[0]?.emailAddress ?? null;
@@ -144,25 +129,30 @@ async function handlePaymentSucceeded(invoice: any) {
     console.error('/api/webhooks/xendit: Clerk lookup error', clerkErr);
   }
 
-  // ── 3e. Send email via Resend ──────────────────────────────
+  // 5. Send email via Resend
   if (billingEmail) {
     try {
-      const invoiceDate = new Date(invoice.created_at);
-      const dueDate = new Date(invoice.expires_at);
-      const fmt = (d: Date) =>
-        d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-      const formatRupiah = (v: number) => `Rp ${new Intl.NumberFormat('id-ID').format(v)}`;
-
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://framr.studio';
-      const invoiceUrl = `${siteUrl}/checkout/invoice/${invoiceId}`;
-
       const attachments: any[] = [];
-      if (pdfBuffer) {
+      if (pdfArrayBuffer) {
+        // Edge-safe way to get base64 from ArrayBuffer
+        const base64Content = btoa(
+          new Uint8Array(pdfArrayBuffer).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ''
+          )
+        );
         attachments.push({
           filename: `invoice-${invoice.reference_id}.pdf`,
-          content: pdfBuffer.toString('base64'),
+          content: base64Content,
         });
       }
+
+      const invoiceDate = new Date(invoice.created_at);
+      const dueDate = new Date(invoice.expires_at);
+      const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const formatRupiah = (v: number) => `Rp ${new Intl.NumberFormat('id-ID').format(v)}`;
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://framr.studio';
+      const invoiceUrl = `${siteUrl}/checkout/invoice/${invoiceId}`;
 
       await resend.emails.send({
         from: 'Framr Studio Billing <billing@framr.studio>',
@@ -182,14 +172,12 @@ async function handlePaymentSucceeded(invoice: any) {
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0" style="background:#FFFFFF;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
-          <!-- Header -->
           <tr>
             <td style="background:#111827;padding:28px 36px;">
               <span style="font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:-0.5px;">FRAMR</span>
               <span style="font-size:22px;font-weight:700;color:#FF6600;letter-spacing:-0.5px;">STUDIO</span>
             </td>
           </tr>
-          <!-- Body -->
           <tr>
             <td style="padding:36px 36px 24px;">
               <p style="margin:0 0 6px;font-size:13px;color:#6B7280;">Payment confirmed</p>
@@ -210,7 +198,6 @@ async function handlePaymentSucceeded(invoice: any) {
               </table>
             </td>
           </tr>
-          <!-- CTA -->
           <tr>
             <td style="padding:0 36px 36px;">
               <p style="margin:0 0 18px;font-size:13px;color:#374151;line-height:1.6;">
@@ -223,7 +210,6 @@ async function handlePaymentSucceeded(invoice: any) {
               </a>
             </td>
           </tr>
-          <!-- Footer -->
           <tr>
             <td style="border-top:1px solid #E5E7EB;padding:20px 36px;background:#F9FAFB;">
               <p style="margin:0;font-size:11px;color:#9CA3AF;">
